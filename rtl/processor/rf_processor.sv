@@ -75,12 +75,14 @@ logic [31:0] 	rf_target_PC_out;
 logic 			rf_take_branch_out;
 logic			rf_valid_inst;
 logic [31:0]	rf_addr2Mem;
+logic [31:0] 	rf_pc_plus_imm;
 
 
 logic rst;
 logic clk;
 logic done; //when rf is finished 
 logic push_pal_inst;
+logic condition_met;
 
 assign rst = ~HRESETn;
 assign clk = HCLK;
@@ -224,7 +226,7 @@ end // always
 
 top #(
     .COLS(32),
-    .ROWS(32)
+    .ROWS(33) //uses buffer
 )  TopRF (
     .clk(clk),
     .rst(rst),
@@ -240,24 +242,52 @@ top #(
     .dataFromMem(HRDATA),
     .data2Mem(HWDATA),
     .addr2Mem(rf_addr2Mem),
+	.buffer_carry_out(buffer_carry_out),
 	.HTRANS(HTRANS),
 	.HWRITE(HWRITE),
 	.rf_valid_inst(rf_valid_inst),
+	.rf_pc_plus_imm(rf_pc_plus_imm),
 	.done(done)
 ); 
 assign HADDR = rf_addr2Mem;
-assign rf_target_PC_out = rf_addr2Mem;
+// assign rf_target_PC_out = rf_addr2Mem;
+
+always_comb begin : branch_decision
+    case(id_rf_funct3)
+        `BNE_INST:
+            condition_met = buffer_carry_out; // carry should be 1 after xor 
+        `BEQ_INST: 
+            condition_met = ~ buffer_carry_out; // carry should be 0 after xor
+        `BLTU_INST:
+            condition_met = buffer_carry_out; // carry should be 1 after subtraction
+        `BGEU_INST:
+            condition_met = ~ buffer_carry_out;
+        default: condition_met = buffer_carry_out;
+    endcase
+end
+
+always_comb begin
+	if(id_rf_uncond_branch) begin
+		rf_target_PC_out = rf_addr2Mem;
+	end
+	else begin
+		rf_target_PC_out = rf_pc_plus_imm;
+	end
+end
 
 always_comb begin
 	if (id_rf_uncond_branch && done && id_rf_valid_inst) begin
 		rf_take_branch_out = 1;
+	end
+	else if (id_rf_cond_branch && done && id_rf_valid_inst) begin
+		rf_take_branch_out = condition_met;
 	end
 	else begin
 		rf_take_branch_out = 0;
 	end
 end
 
-assign push_pal_inst = id_rf_uncond_branch & id_rf_valid_inst;
+assign push_pal_inst = (id_rf_uncond_branch | id_rf_cond_branch) & id_rf_valid_inst;
 
 //////////////////////////////////////////////////
 //                                              //

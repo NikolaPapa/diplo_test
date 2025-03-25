@@ -119,7 +119,7 @@ initial begin
 end
 
 initial begin
-    $readmemh("testH2.txt",IM.unified_memory);
+    $readmemh("testH4.txt",IM.unified_memory);
     $readmemh("mem_hex.txt",DM.mem);
 end
 

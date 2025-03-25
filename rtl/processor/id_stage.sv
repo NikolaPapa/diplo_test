@@ -85,7 +85,11 @@ always_comb begin
 			
 			case(inst[14:12])
 				3'd2, 3'd3: illegal = `TRUE;
-				default: decode_addr = 18;
+				`BNE_INST: decode_addr = 19;
+				`BEQ_INST: decode_addr = 19;
+				`BLTU_INST: decode_addr = 21;
+				`BGEU_INST: decode_addr = 21;
+				default: decode_addr = 18; //wait cycle
 			endcase
 		end //B_TYPE
 		
