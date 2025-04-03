@@ -22,7 +22,8 @@ module top#(
     output logic buffer_carry_out,
     output logic [1:0] HTRANS,
     output logic HWRITE,
-    output logic done
+    output logic done,
+    output logic buffer_msb
 );
 
 //-- signals for RF --
@@ -40,7 +41,7 @@ logic carry_in, inv_en;
 logic [COLS-1:0] rd_out_dn; //needs to be used
 
 //-- signals for micro_control --
-logic [18:0] current_control;
+logic [19:0] current_control;
 
 
 
@@ -60,7 +61,8 @@ micro_control controller(
 //'b write_en op_enable exp_go_up exp_go_dn data2bus_en dataFM_en pc_plus_en pc_imm_en imm_up_en imm_en op_fa (is_last_signal)
 assign {write_en, op_enable, exp_go_up,
         exp_go_dn, data2bus_en, dataFM_en,
-        pc_plus_en, pc_imm_en, imm_up_en, imm_en, op_fa, buffer_read, buffer_write, carry_in, inv_en} = current_control[18:1];
+        pc_plus_en, pc_imm_en, imm_up_en, imm_en, op_fa, 
+        buffer_read, buffer_write, buffer_go_up, carry_in, inv_en} = current_control[19:1];
 
 
 
@@ -79,6 +81,7 @@ reg_file #(
         .exp_go_dn(exp_go_dn),
         .buffer_write(buffer_write),
         .buffer_read(buffer_read),
+        .buffer_go_up(buffer_go_up),
         .inv_en(inv_en),
         .immediate(immediate),
         .imm_en(imm_en),
@@ -97,7 +100,8 @@ reg_file #(
         .data2Mem(data2Mem),
         .addr2Mem(addr2Mem),
         .rd_out_dn(rd_out_dn),
-        .buffer_carry_out(buffer_carry_out)
+        .buffer_carry_out(buffer_carry_out),
+        .buffer_msb(buffer_msb)
     );
 
 endmodule

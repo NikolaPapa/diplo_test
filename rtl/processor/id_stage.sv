@@ -10,6 +10,7 @@ input logic valid_inst_in,  // ignore inst when low, outputs will
 					        // reflect noop (except valid_inst)
 
 output logic        dest_reg, // mux selects
+output logic		swap_regs, //for subtraction in comparisons
 
 output logic [4:0]  decode_addr, //address for micro operation memory
 
@@ -32,7 +33,7 @@ always_comb begin
 	cond_branch = `FALSE;
 	uncond_branch = `FALSE;
 	illegal = `FALSE;
-
+	swap_regs = 0;
 	case (inst[6:0])
 		`R_TYPE: begin
 			
@@ -40,7 +41,10 @@ always_comb begin
 
 			case({inst[14:12], inst[31:25]})
 				`ADD_INST  : decode_addr = 4;   
-				`SUB_INST  : decode_addr = 18;//needs to change  
+				`SUB_INST  : begin 
+					decode_addr = 24; 
+					swap_regs = 1;
+				end
 				`XOR_INST  : decode_addr = 6;   
 				`OR_INST   : decode_addr = 7;   
 				`AND_INST  : decode_addr = 5;
@@ -85,10 +89,11 @@ always_comb begin
 			
 			case(inst[14:12])
 				3'd2, 3'd3: illegal = `TRUE;
-				`BNE_INST: decode_addr = 19;
-				`BEQ_INST: decode_addr = 19;
-				`BLTU_INST: decode_addr = 21;
-				`BGEU_INST: decode_addr = 21;
+				`BNE_INST, `BEQ_INST: decode_addr = 19;
+				`BLTU_INST, `BGEU_INST, `BGE_INST, `BLT_INST: begin 
+							decode_addr = 21;
+							swap_regs = 1;
+				end
 				default: decode_addr = 18; //wait cycle
 			endcase
 		end //B_TYPE
@@ -161,12 +166,24 @@ output logic       	id_valid_inst_out	  	// is inst a valid instruction to be co
 );
    
 logic dest_reg_select;
+logic swap_regs;
 
 //instruction fields read from IF/ID pipeline register 
 logic[4:0] rc_idx; 
 
-assign id_rs1_idx_out=if_id_IR[19:15];	// inst operand A register index
-assign id_rs2_idx_out=if_id_IR[24:20];	// inst operand B register index
+// assign id_rs1_idx_out=if_id_IR[19:15];	// inst operand A register index
+// assign id_rs2_idx_out=if_id_IR[24:20];	// inst operand B register index
+always_comb begin
+	if (swap_regs) begin
+		id_rs2_idx_out=if_id_IR[19:15];
+		id_rs1_idx_out=if_id_IR[24:20];
+		//swap A and B of the operands so i can move them to the buffer correctly
+	end
+	else begin
+		id_rs1_idx_out=if_id_IR[19:15];
+		id_rs2_idx_out=if_id_IR[24:20];
+	end
+end
 
 assign rc_idx=if_id_IR[11:7];  // inst operand C register index //used in decoder
 
@@ -177,6 +194,7 @@ inst_decoder inst_decoder_0(.inst	        (if_id_IR),
 							.valid_inst_in  (if_id_valid_inst),
 							.dest_reg		(dest_reg_select),
 							.decode_addr	(id_decode_addr),
+							.swap_regs		(swap_regs),
 							.cond_branch	(cond_branch),
 							.uncond_branch	(uncond_branch),
 							.illegal		(id_illegal_out),

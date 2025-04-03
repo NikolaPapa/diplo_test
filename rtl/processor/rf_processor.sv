@@ -83,6 +83,7 @@ logic clk;
 logic done; //when rf is finished 
 logic push_pal_inst;
 logic condition_met;
+logic buffer_msb;
 
 assign rst = ~HRESETn;
 assign clk = HCLK;
@@ -172,7 +173,7 @@ id_stage id_stage_0 (
 
 //////////////////////////////////////////////////
 //                                              //
-//            ID/EX Pipeline Register           //
+//            ID/RF Pipeline Register           //
 //                                              //
 //////////////////////////////////////////////////
 assign id_rf_enable =1; // disabled when HzDU initiates a stall
@@ -232,7 +233,6 @@ top #(
     .rst(rst),
     .decode_addr(id_rf_decode_addr),
 	.id_rf_valid_inst(id_rf_valid_inst),
-	
     .rd_index(id_rf_dest_reg_idx),
     .rs1_index(id_rf_rs1_idx),
     .rs2_index(id_rf_rs2_idx),
@@ -247,10 +247,10 @@ top #(
 	.HWRITE(HWRITE),
 	.rf_valid_inst(rf_valid_inst),
 	.rf_pc_plus_imm(rf_pc_plus_imm),
-	.done(done)
+	.done(done),
+	.buffer_msb(buffer_msb)
 ); 
 assign HADDR = rf_addr2Mem;
-// assign rf_target_PC_out = rf_addr2Mem;
 
 always_comb begin : branch_decision
     case(id_rf_funct3)
@@ -259,9 +259,13 @@ always_comb begin : branch_decision
         `BEQ_INST: 
             condition_met = ~ buffer_carry_out; // carry should be 0 after xor
         `BLTU_INST:
-            condition_met = buffer_carry_out; // carry should be 1 after subtraction
+            condition_met = ~ buffer_carry_out; // carry should be 0 after subtraction (A<B)
         `BGEU_INST:
-            condition_met = ~ buffer_carry_out;
+            condition_met =  buffer_carry_out; // carry should be 1 (A>=B)
+		`BLT_INST:
+			condition_met =  buffer_carry_out ^ buffer_msb;
+		`BGE_INST:
+			condition_met = ~(buffer_carry_out ^ buffer_msb);
         default: condition_met = buffer_carry_out;
     endcase
 end
@@ -288,12 +292,6 @@ always_comb begin
 end
 
 assign push_pal_inst = (id_rf_uncond_branch | id_rf_cond_branch) & id_rf_valid_inst;
-
-//////////////////////////////////////////////////
-//                                              //
-//             NotUsed-Stage                    //
-//                                              //
-//////////////////////////////////////////////////
 
 
 endmodule  

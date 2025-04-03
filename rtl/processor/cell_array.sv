@@ -19,7 +19,8 @@ module cell_array #(
     output logic [COLS-1:0] wr_out_dn,
     output logic [COLS-1:0] rd_out_up,
     output logic [COLS-1:0] rd_out_dn,    // N-bit data output from the selected row
-    output logic [ROWS-1:0] overflow        // Overflow flags, one bit per row
+    output logic [ROWS-1:0] overflow,        // Overflow flags, one bit per row
+    output logic last_row_msb //used in branches
 );
 
     // Intermediate wires for read select and write select signals for each row
@@ -31,13 +32,14 @@ module cell_array #(
     //to see content of registers
     logic [ROWS-1:0][COLS-1:0] debug_all_regs;
 
+    logic always_zero = wr_en[0] & 1'b0;
     //first row initialization
     reg_row #(.N(COLS)) row_inst_0(
                 .wr_in_up(row_wr_out_up[ROWS-2]),  
 		.wr_in_dn(data_in_dn),            
                 .rd_in_up(row_rd_out_up[ROWS-2]),
 		.rd_in_dn(rd_in_dn),        
-                .wr_en(wr_en[0]),               // Write enable for this row
+                .wr_en(always_zero),               // Write enable for this row  //wr_en[0]
                 .wr_sel_up(wr_addr_up[0]),
         	.wr_sel_dn(wr_addr_dn[0]),
         	.rd_sel_up(rd_addr_up[0]),
@@ -76,6 +78,8 @@ module cell_array #(
 		.overflow(overflow[ROWS-1]),          // Overflow for this row
                 .debug_row_reg(debug_all_regs[ROWS-1])  // Connect debug output
             );
+        
+        assign last_row_msb = debug_all_regs[ROWS-1][COLS-1];
 
     // Instantiate R rows of reg_row
     genvar row;

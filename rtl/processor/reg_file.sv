@@ -12,6 +12,7 @@ module reg_file#(
     input logic exp_go_dn, //for BNE and BEQ
     input logic buffer_read,
     input logic buffer_write,
+    input logic buffer_go_up,
     input logic inv_en, // when subtracting
     input logic [COLS-1:0] immediate, // immediate and offset
     input logic imm_en,
@@ -26,16 +27,16 @@ module reg_file#(
     input logic pc_plus_en, //enable the pc_plus4 to be on the data_downstream
     input logic pc_imm_en,
     input logic imm_up_en,
-    //input logic  [1:0] br_cond,
+
     output logic [COLS-1:0] pc_plus_imm,
     output logic [COLS-1:0] data2Mem,
     output logic [COLS-1:0] addr2Mem,
     output logic [COLS-1:0] rd_out_dn, //needs to be used
-    //output logic condition_met, //1 if condition_met
 
     //output logic [COLS-1:0] wr_out_dn, // used for branches later
     // output logic [ROWS-1:0] ovf_Check
-    output logic buffer_carry_out
+    output logic buffer_carry_out,
+    output logic buffer_msb
 
 );
 
@@ -141,18 +142,45 @@ logic [1:0] ctrl_rs1;
 logic [1:0] ctrl_rs2;
 logic comp_rs1;
 logic comp_rs2;
-logic go_up_fa;
-logic go_up_data;
 
 assign comp_rs1 = (rs1_index > rd_index) ? 1'b1 : 1'b0;
-assign go_up_fa = comp_rs1 | exp_go_up; //explicit go up on load and store operation
-assign ctrl_rs1[0] = go_up_fa & op_enable;
-assign ctrl_rs1[1] =  ((~go_up_fa) & op_enable) | exp_go_dn;
+always_comb begin
+    if (op_enable) begin
+        if (exp_go_up) begin
+            ctrl_rs1 = 2'b01;
+        end
+        else if (exp_go_dn) begin
+            ctrl_rs1 = 2'b10;
+        end
+        else begin
+            ctrl_rs1[0] = comp_rs1;
+            ctrl_rs1[1] = ~comp_rs1;
+        end
+    end
+    else begin
+        ctrl_rs1 = 2'b00;
+    end
+end
 
 assign comp_rs2 = (rs2_index > rs1_index) ? 1'b1 : 1'b0;
-assign go_up_data = comp_rs2 | exp_go_up; //exp_go_up on store operation
-assign ctrl_rs2[0] = go_up_data & data2bus_en;
-assign ctrl_rs2[1] =  ((~go_up_data) & data2bus_en) | exp_go_dn;
+
+always_comb begin
+    if (data2bus_en) begin
+        if (exp_go_up) begin
+            ctrl_rs2 = 2'b01;
+        end
+        else if (exp_go_dn) begin
+            ctrl_rs2 = 2'b10;
+        end
+        else begin
+            ctrl_rs2[0] = comp_rs2;
+            ctrl_rs2[1] = ~comp_rs2;
+        end
+    end
+    else begin
+        ctrl_rs2 = 2'b00;
+    end
+end
 
 decoder_2ctrl rs1_dec(
         .index(rs1_index),
@@ -182,7 +210,7 @@ assign fa_addr_dn[31:0] = fa_addr_dn_32;
 assign fa_addr_dn[32] = 1'b0;
 assign fa_addr_up[31:0] = fa_addr_up_32;
 // assign fa_addr_up[32] = 1'b0;
-assign fa_addr_up[32] = inv_en;
+assign fa_addr_up[32] = buffer_go_up;
 
 cell_array #(
         .COLS(COLS),
@@ -202,10 +230,11 @@ cell_array #(
         .op_fa(op_fa),
         .carry_in(carry_in),
         .wr_out_up(addr2Mem),
-        .wr_out_dn(wr_out_dn), //check for equal or not branch condition
+        .wr_out_dn(wr_out_dn), 
 	    .rd_out_up(data2Mem),
 	    .rd_out_dn(rd_out_dn),
-        .overflow(ovf_Check)
+        .overflow(ovf_Check),
+        .last_row_msb(buffer_msb)
     );
 
 assign buffer_carry_out = ovf_Check[32];
