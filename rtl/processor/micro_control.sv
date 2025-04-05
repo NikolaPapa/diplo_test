@@ -66,7 +66,7 @@ module ROM(
 logic [19:0] ROM[26:0];
 // br_condition doesn't need to be in memory 
 //'b write_en op_enable exp_go_up exp_go_dn data2bus_en dataFM_en 
-// pc_plus_en pc_imm_en imm_up_en imm_en op_fa buffer_read buffer_write carry_in inv_en(is_last_signal)
+// pc_plus_en pc_imm_en imm_up_en imm_en op_fa buffer_read buffer_write buffer_go_up carry_in inv_en(is_last_signal)
 
 //load
 assign ROM[0] = 20'b0_1_10_0_0_0_0_0_1_0001_000_00_0; //address phase
@@ -96,7 +96,7 @@ assign ROM[17] = 20'b0_1_10_0_0_0_0_0_1_0001_000_00_1; //JALR step2 (give back t
 assign ROM[18] = 20'b0_0_00_0_0_0_0_0_0_0001_000_00_1;
 //B - types (BNE/BEQ) same instructions
 assign ROM[19] = 20'b0_1_01_1_0_0_0_0_0_0100_010_00_0; //BNE xor A and B
-assign ROM[20] = 20'b0_0_00_0_0_0_0_0_0_0001_010_00_1; //BNE or reduction of the bits from the xor
+assign ROM[20] = 20'b0_0_00_0_0_0_0_0_0_0001_000_01_1; //BNE sum with 1's and look the carry out
 //B - types (BLTU/BGEU) same instructions
 assign ROM[21] = 20'b0_1_01_0_0_0_0_0_0_0001_010_00_0; //load rs1 into buffer
 assign ROM[22] = 20'b0_0_00_0_0_0_0_0_0_0100_011_01_0; //xor with 1's and save into buffer

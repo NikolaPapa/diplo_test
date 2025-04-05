@@ -149,7 +149,7 @@ always_comb begin
         if (exp_go_up) begin
             ctrl_rs1 = 2'b01;
         end
-        else if (exp_go_dn) begin
+        else if (exp_go_dn) begin //check for bne/beq
             ctrl_rs1 = 2'b10;
         end
         else begin
@@ -169,7 +169,7 @@ always_comb begin
         if (exp_go_up) begin
             ctrl_rs2 = 2'b01;
         end
-        else if (exp_go_dn) begin
+        else if (exp_go_dn && (op_enable == 0)) begin //temporary fix for bne/beq
             ctrl_rs2 = 2'b10;
         end
         else begin

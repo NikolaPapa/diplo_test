@@ -84,6 +84,7 @@ logic done; //when rf is finished
 logic push_pal_inst;
 logic condition_met;
 logic buffer_msb;
+logic buffer_carry_out;
 
 assign rst = ~HRESETn;
 assign clk = HCLK;

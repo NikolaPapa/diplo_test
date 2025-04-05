@@ -36,7 +36,7 @@ module ahb_memory #(parameter MEM_DEPTH = 256) (
             reg_HWRITE        <= 1'b0;
         end else if (HREADY && reg_trans==IDLE) begin //when previous transfer ended so HREADY is 1. We keep the address and the transaction
             address_reg       <= HADDR;
-            valid_access_reg  <= (HADDR[31:2] < MEM_DEPTH);
+            valid_access_reg  <= (HADDR < (MEM_DEPTH-1));
             reg_trans    <= HTRANS;
             reg_HWRITE   <= HWRITE;
         end else begin
