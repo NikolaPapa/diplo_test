@@ -100,7 +100,7 @@ assign ROM[20] = 20'b0_0_00_0_0_0_0_0_0_0001_0_00_01_1; //BNE sum with 1's and l
 //B - types (BLTU/BGEU) same instructions
 assign ROM[21] = 20'b0_1_01_0_0_0_0_0_0_0001_0_10_00_0; //load rs1 into buffer
 assign ROM[22] = 20'b0_0_00_0_0_0_0_0_0_0100_0_11_01_0; //xor with 1's and save into buffer
-assign ROM[23] = 20'b0_0_01_1_0_0_0_0_0_0001_0_00_10_1; //sum with rs2 and check carry out
+assign ROM[23] = 20'b0_0_01_1_0_0_0_0_0_0001_0_01_10_1; //sum with rs2 and check carry out
 //we need to swap rs1 and rs2 beforehand so we have rs1 - rs2 and not the other way around
 
 //SUB instruction

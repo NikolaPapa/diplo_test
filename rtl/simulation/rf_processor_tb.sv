@@ -120,7 +120,7 @@ initial begin
 end
 
 initial begin
-    $readmemh("array_sum2.txt",IM.unified_memory);
+    $readmemh("bb_sortH.txt",IM.unified_memory);
     // $readmemh("test5H.txt",IM.unified_memory);
     // $readmemh("mem_hex.txt",DM.mem);
     $readmemh("init_file.txt",DM.mem);

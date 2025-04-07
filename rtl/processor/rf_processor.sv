@@ -87,6 +87,8 @@ logic push_pal_inst;
 logic condition_met;
 logic buffer_msb;
 logic buffer_carry_out;
+logic buffer_overflow;
+logic buffer_last_carry_in;
 
 assign rst = ~HRESETn;
 assign clk = HCLK;
@@ -255,10 +257,13 @@ top #(
 	.rf_valid_inst(rf_valid_inst),
 	.rf_pc_plus_imm(rf_pc_plus_imm),
 	.done(done),
-	.buffer_msb(buffer_msb)
+	.buffer_msb(buffer_msb),
+	.buffer_last_carry_in(buffer_last_carry_in)
 ); 
 assign HADDR = rf_addr2Mem;
 
+
+assign buffer_overflow = buffer_last_carry_in ^ buffer_carry_out;
 always_comb begin : branch_decision
     case(id_rf_funct3)
         `BNE_INST:
@@ -270,9 +275,9 @@ always_comb begin : branch_decision
         `BGEU_INST:
             condition_met =  buffer_carry_out; // carry should be 1 (A>=B)
 		`BLT_INST:
-			condition_met =  buffer_carry_out ^ buffer_msb;
+			condition_met =  buffer_overflow ^ buffer_msb;//buffer_carry_out ^ buffer_msb;
 		`BGE_INST:
-			condition_met = ~(buffer_carry_out ^ buffer_msb);
+			condition_met = ~(buffer_overflow ^ buffer_msb);//~(buffer_carry_out ^ buffer_msb);
         default: condition_met = buffer_carry_out;
     endcase
 end

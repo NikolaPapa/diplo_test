@@ -20,7 +20,8 @@ module cell_array #(
     output logic [COLS-1:0] rd_out_up,
     output logic [COLS-1:0] rd_out_dn,    // N-bit data output from the selected row
     output logic [ROWS-1:0] overflow,        // Overflow flags, one bit per row
-    output logic last_row_msb //used in branches
+    output logic last_row_msb, //used in branches
+    output logic buffer_last_carry_in
 );
 
     // Intermediate wires for read select and write select signals for each row
@@ -31,6 +32,9 @@ module cell_array #(
 
     //to see content of registers
     logic [ROWS-1:0][COLS-1:0] debug_all_regs;
+
+    //for overflow in signed numbers
+    logic [ROWS-1:0] last_carry_in;
 
     logic always_zero = wr_en[0] & 1'b0;
     //first row initialization
@@ -53,7 +57,8 @@ module cell_array #(
 		.wr_out_up(row_wr_out_up[ROWS-1]),  // Write data output from this row
                 .wr_out_dn(row_wr_out_dn[0]),
 		.overflow(overflow[0]) ,         // Overflow for this row
-                .debug_row_reg(debug_all_regs[0])  // Connect debug output
+                .debug_row_reg(debug_all_regs[0]),  // Connect debug output
+                .last_carry_in(last_carry_in[0])
             );
     
     //last row initialization
@@ -76,10 +81,13 @@ module cell_array #(
 		.wr_out_up(row_wr_out_up[0]),         // Write data output from this row
                 .wr_out_dn(row_wr_out_dn[ROWS-1]),
 		.overflow(overflow[ROWS-1]),          // Overflow for this row
-                .debug_row_reg(debug_all_regs[ROWS-1])  // Connect debug output
+                .debug_row_reg(debug_all_regs[ROWS-1]),  // Connect debug output
+                .last_carry_in(last_carry_in[ROWS-1])
             );
         
-        assign last_row_msb = debug_all_regs[ROWS-1][COLS-1];
+        // assign last_row_msb = debug_all_regs[ROWS-1][COLS-1];
+        assign last_row_msb = row_wr_out_up[0][COLS-1];
+        assign buffer_last_carry_in = last_carry_in[ROWS-1];
 
     // Instantiate R rows of reg_row
     genvar row;
@@ -104,7 +112,8 @@ module cell_array #(
 		.wr_out_up(row_wr_out_up[ROWS-1-row]),     // Write data output from this row
                 .wr_out_dn(row_wr_out_dn[row]),
 		.overflow(overflow[row]),
-                .debug_row_reg(debug_all_regs[row])  // Connect debug output
+                .debug_row_reg(debug_all_regs[row]),  // Connect debug output
+                .last_carry_in(last_carry_in[row])
             );
         end
     endgenerate

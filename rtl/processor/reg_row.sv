@@ -19,7 +19,8 @@ module reg_row #(
     output logic [N-1:0] wr_out_up,
     output logic [N-1:0] wr_out_dn,   // out of write
     output logic overflow,            // Overflow from the last column
-    output logic [N-1:0] debug_row_reg //content of register for debugging
+    output logic [N-1:0] debug_row_reg, //content of register for debugging
+    output logic last_carry_in // in order to determine real overflow in signed numbers
 );
 
     // Internal carry signals between cells in the row
@@ -83,5 +84,6 @@ module reg_row #(
 
     // Connect the final carry_out of the last column to the overflow output
     assign overflow = carry_out[N-1];
+    assign last_carry_in = carry_out[N-2];
 
 endmodule

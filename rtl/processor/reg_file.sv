@@ -37,7 +37,8 @@ module reg_file#(
     //output logic [COLS-1:0] wr_out_dn, // used for branches later
     // output logic [ROWS-1:0] ovf_Check
     output logic buffer_carry_out,
-    output logic buffer_msb
+    output logic buffer_msb,
+    output logic buffer_last_carry_in
 
 );
 
@@ -245,7 +246,8 @@ cell_array #(
 	    .rd_out_up(data2Mem),
 	    .rd_out_dn(rd_out_dn), //in the shifter
         .overflow(ovf_Check),
-        .last_row_msb(buffer_msb)
+        .last_row_msb(buffer_msb),
+        .buffer_last_carry_in(buffer_last_carry_in)
     );
 
 assign buffer_carry_out = ovf_Check[32];

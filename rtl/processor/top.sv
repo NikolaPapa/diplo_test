@@ -24,7 +24,8 @@ module top#(
     output logic [1:0] HTRANS,
     output logic HWRITE,
     output logic done,
-    output logic buffer_msb
+    output logic buffer_msb,
+    output logic buffer_last_carry_in
 );
 
 //-- signals for RF --
@@ -104,7 +105,8 @@ reg_file #(
         .addr2Mem(addr2Mem),
         // .rd_out_dn(rd_out_dn),
         .buffer_carry_out(buffer_carry_out),
-        .buffer_msb(buffer_msb)
+        .buffer_msb(buffer_msb),
+        .buffer_last_carry_in(buffer_last_carry_in)
     );
 
 endmodule
