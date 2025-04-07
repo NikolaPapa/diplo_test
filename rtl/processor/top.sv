@@ -15,6 +15,7 @@ module top#(
     input logic [COLS-1:0] pc_plus4, //jal and jalr
     input logic [COLS-1:0] pc_reg, //for pc_plus_imm U_AUIPC_TYPE
     input logic [COLS-1:0] dataFromMem, 
+    input logic [1:0] id_rf_shift_controls,
     output logic [COLS-1:0] data2Mem,
     output logic [COLS-1:0] addr2Mem,
     output logic rf_valid_inst,
@@ -36,9 +37,10 @@ logic pc_plus_en;
 logic pc_imm_en;
 logic imm_up_en;
 logic dataFM_en;
-logic buffer_read, buffer_write;
+logic shift_en;
+logic buffer_write, buffer_go_up;
 logic carry_in, inv_en;
-logic [COLS-1:0] rd_out_dn; //needs to be used
+// logic [COLS-1:0] rd_out_dn; //needs to be used
 
 //-- signals for micro_control --
 logic [19:0] current_control;
@@ -62,7 +64,7 @@ micro_control controller(
 assign {write_en, op_enable, exp_go_up,
         exp_go_dn, data2bus_en, dataFM_en,
         pc_plus_en, pc_imm_en, imm_up_en, imm_en, op_fa, 
-        buffer_read, buffer_write, buffer_go_up, carry_in, inv_en} = current_control[19:1];
+        shift_en, buffer_write, buffer_go_up, carry_in, inv_en} = current_control[19:1];
 
 
 
@@ -79,8 +81,9 @@ reg_file #(
         .op_enable(op_enable),
         .exp_go_up(exp_go_up),
         .exp_go_dn(exp_go_dn),
+        .shift_en(shift_en),
+        .id_rf_shift_controls(id_rf_shift_controls),
         .buffer_write(buffer_write),
-        .buffer_read(buffer_read),
         .buffer_go_up(buffer_go_up),
         .inv_en(inv_en),
         .immediate(immediate),
@@ -99,7 +102,7 @@ reg_file #(
         .pc_plus_imm(rf_pc_plus_imm),
         .data2Mem(data2Mem),
         .addr2Mem(addr2Mem),
-        .rd_out_dn(rd_out_dn),
+        // .rd_out_dn(rd_out_dn),
         .buffer_carry_out(buffer_carry_out),
         .buffer_msb(buffer_msb)
     );

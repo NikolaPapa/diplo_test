@@ -1,4 +1,8 @@
-module ahb_memory #(parameter MEM_DEPTH = 256) (
+`ifdef MODEL_TECH
+	`include "../sys_defs.vh"
+`endif
+
+module ahb_memory(
     input  logic           HCLK,       // System clock
     input  logic           HRESETn,    // Active-low reset
     input  logic  [31:0]   HADDR,      // AHB address bus
@@ -13,7 +17,7 @@ module ahb_memory #(parameter MEM_DEPTH = 256) (
 );
 
     // Memory storage
-    logic [31:0] mem [MEM_DEPTH-1:0];
+    logic [31:0] mem [`MEM_32BIT_LINES-1:0];
 
     // Internal signals
     logic [31:0] address_reg;
@@ -35,8 +39,8 @@ module ahb_memory #(parameter MEM_DEPTH = 256) (
             reg_trans    <= 2'b00; //idle
             reg_HWRITE        <= 1'b0;
         end else if (HREADY && reg_trans==IDLE) begin //when previous transfer ended so HREADY is 1. We keep the address and the transaction
-            address_reg       <= HADDR;
-            valid_access_reg  <= (HADDR < (MEM_DEPTH-1));
+            address_reg       <= HADDR[31:2];
+            valid_access_reg  <= (HADDR[1:0]==2'b00) & (HADDR < `MEM_SIZE_IN_BYTES);
             reg_trans    <= HTRANS;
             reg_HWRITE   <= HWRITE;
         end else begin
@@ -63,10 +67,10 @@ module ahb_memory #(parameter MEM_DEPTH = 256) (
     // Continuous assignment for read data output
     assign HRDATA = (!reg_HWRITE && valid_access_reg && reg_trans != IDLE) ? mem[address_reg] : 32'b0;
 
-    // Initialize memory
-    initial begin
-        for(int i=0; i<MEM_DEPTH; i=i+1) begin
-            mem[i] = 32'h0;
-        end
-    end
+    // // Initialize memory
+    // initial begin
+    //     for(int i=0; i<`MEM_32BIT_LINES; i=i+1) begin
+    //         mem[i] = 32'h0;
+    //     end
+    // end
 endmodule

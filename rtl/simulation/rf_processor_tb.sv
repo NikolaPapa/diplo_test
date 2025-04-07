@@ -7,8 +7,9 @@ module rf_processor_tb;
 ////
 //Data Memory AHB
 ////
-// Parameters
-  localparam MEM_DEPTH = 32768;
+// // Parameters
+//   localparam MEM_DEPTH = 32768;
+//   localparam MEM_32BIT_LINES = (MEM_DEPTH/4);
 
   // Signals
   logic           HCLK;
@@ -99,7 +100,7 @@ mem IM(
   assign HREADY = 1;//no other subordinates
 
   // Instantiate the DataMemory
-  ahb_memory #(MEM_DEPTH) DM (
+  ahb_memory DM (
     .HCLK(HCLK),
     .HRESETn(HRESETn),
     .HADDR(HADDR),
@@ -119,9 +120,10 @@ initial begin
 end
 
 initial begin
-    $readmemh("bb_sortH.txt",IM.unified_memory);
+    $readmemh("array_sum2.txt",IM.unified_memory);
     // $readmemh("test5H.txt",IM.unified_memory);
-    $readmemh("mem_hex.txt",DM.mem);
+    // $readmemh("mem_hex.txt",DM.mem);
+    $readmemh("init_file.txt",DM.mem);
 end
 
 initial begin

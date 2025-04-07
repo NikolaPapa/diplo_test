@@ -14,7 +14,7 @@ output logic		swap_regs, //for subtraction in comparisons
 
 output logic [4:0]  decode_addr, //address for micro operation memory
 
-
+output logic [1:0]  shift_controls,
 output logic		cond_branch, uncond_branch,
 output logic 		illegal,    // non-zero on an illegal instruction
 output logic 		valid_inst  // for counting valid instructions executed
@@ -30,6 +30,7 @@ always_comb begin
 	decode_addr = 18; //wait state address
 	dest_reg = `DEST_NONE;
 	
+	shift_controls = 2'b00;
 	cond_branch = `FALSE;
 	uncond_branch = `FALSE;
 	illegal = `FALSE;
@@ -48,6 +49,7 @@ always_comb begin
 				`XOR_INST  : decode_addr = 6;   
 				`OR_INST   : decode_addr = 7;   
 				`AND_INST  : decode_addr = 5;
+				
 				default: illegal = `TRUE;
 			endcase 
 		end //R-TYPE
@@ -61,6 +63,21 @@ always_comb begin
 				`XORI_INST : decode_addr = 10;
 				`ORI_INST  : decode_addr = 11;
 				`ANDI_INST : decode_addr = 9;
+				`SLLI_INST  : begin
+					decode_addr = 27;
+					shift_controls = 2'b00;
+					swap_regs = 1;
+				end
+				`SRLI_INST  : begin
+					decode_addr = 27;
+					shift_controls = 2'b10;
+					swap_regs = 1;
+				end
+				`SRAI_INST  : begin
+					decode_addr = 27;
+					shift_controls = 2'b11;
+					swap_regs = 1;
+				end
 				
 				default: illegal = `TRUE;
 			endcase 
@@ -157,7 +174,7 @@ output logic [4:0] 	id_dest_reg_idx_out,  	// destination (writeback) register i
 
 output logic [4:0]  id_decode_addr,        // decode address
 
-
+output logic [1:0]  id_shift_controls,
 output logic 		cond_branch,
 output logic        uncond_branch,
 
@@ -195,6 +212,7 @@ inst_decoder inst_decoder_0(.inst	        (if_id_IR),
 							.dest_reg		(dest_reg_select),
 							.decode_addr	(id_decode_addr),
 							.swap_regs		(swap_regs),
+							.shift_controls (id_shift_controls),
 							.cond_branch	(cond_branch),
 							.uncond_branch	(uncond_branch),
 							.illegal		(id_illegal_out),

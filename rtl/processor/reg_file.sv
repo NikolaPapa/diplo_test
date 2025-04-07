@@ -10,7 +10,8 @@ module reg_file#(
     input logic op_enable, // to choose fa_out up or down
     input logic exp_go_up, //for load and store handling
     input logic exp_go_dn, //for BNE and BEQ
-    input logic buffer_read,
+    input logic shift_en,
+    input logic [1:0] id_rf_shift_controls,
     input logic buffer_write,
     input logic buffer_go_up,
     input logic inv_en, // when subtracting
@@ -31,7 +32,7 @@ module reg_file#(
     output logic [COLS-1:0] pc_plus_imm,
     output logic [COLS-1:0] data2Mem,
     output logic [COLS-1:0] addr2Mem,
-    output logic [COLS-1:0] rd_out_dn, //needs to be used
+    // output logic [COLS-1:0] rd_out_dn, //needs to be used
 
     //output logic [COLS-1:0] wr_out_dn, // used for branches later
     // output logic [ROWS-1:0] ovf_Check
@@ -61,7 +62,7 @@ logic [31:0] fa_addr_dn_32;
 //logic [COLS-1:0] wr_out_up;
 //logic [COLS-1:0] rd_out_up; //data out
 logic [COLS-1:0] wr_out_dn; //used to check if equal
-//logic [COLS-1:0] rd_out_dn;
+logic [COLS-1:0] rd_out_dn;
 logic [ROWS-1:0] ovf_Check;
 
 //inputs handling
@@ -87,6 +88,8 @@ ctrl_32_out ctrl_imm(
 //ctrl downstream
 logic [COLS-1:0] data_in;
 logic [COLS-1:0] pc_in;
+//shifting out 
+logic [COLS-1:0] shift_out;
 
 ctrl_32_out ctrl_DataFMem(
         .in_sig(dataFromMem),
@@ -99,10 +102,18 @@ ctrl_32_out ctrl_pc_plus4(
         .out(pc_in)
     );
 
+shift_unit BitShifter(
+        .in_word(rd_out_dn),
+        .out_word(shift_out),
+        .enable(shift_en),
+        .dir(id_rf_shift_controls[1]),
+        .arith(id_rf_shift_controls[0])
+    );
+
     genvar i;
     generate
         for (i = 0; i < 32; i = i + 1) begin
-            assign data_in_dn[i] = pc_in[i] | data_in[i]; // pc_plus4 or dataFM
+            assign data_in_dn[i] = pc_in[i] | data_in[i] | shift_out[i]; // pc_plus4 or dataFM
         end
     endgenerate
 
@@ -204,7 +215,7 @@ assign rd_addr_dn[31:0] = rd_addr_dn_32 ;
 assign rd_addr_dn[32] = 1'b0;
 
 assign rd_addr_up[31:0] = rd_addr_up_32;
-assign rd_addr_up[32] = buffer_read;
+assign rd_addr_up[32] = 1'b0; //buffer_read;
 
 assign fa_addr_dn[31:0] = fa_addr_dn_32;
 assign fa_addr_dn[32] = 1'b0;
@@ -232,7 +243,7 @@ cell_array #(
         .wr_out_up(addr2Mem),
         .wr_out_dn(wr_out_dn), 
 	    .rd_out_up(data2Mem),
-	    .rd_out_dn(rd_out_dn),
+	    .rd_out_dn(rd_out_dn), //in the shifter
         .overflow(ovf_Check),
         .last_row_msb(buffer_msb)
     );
@@ -241,5 +252,28 @@ assign buffer_carry_out = ovf_Check[32];
 // //for branch prediction
 
 
+
+endmodule
+
+module shift_unit (
+    input  logic [31:0] in_word,
+    input  logic        enable,
+    input  logic        dir,      // 0 = left, 1 = right
+    input  logic        arith,    // only used if dir == 1
+    output logic [31:0] out_word
+);
+
+    logic [31:0] shifted;
+
+    always_comb begin
+        case ({dir, arith})
+            2'b00: shifted = in_word << 1;                    // Left logical
+            2'b10: shifted = in_word >> 1;                    // Right logical
+            2'b11: shifted = $signed(in_word) >>> 1;          // Right arithmetic
+            default: shifted = 32'b0;                         // Not used, but safe
+        endcase
+
+        out_word = enable ? shifted : 32'b0;
+    end
 
 endmodule

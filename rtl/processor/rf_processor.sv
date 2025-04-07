@@ -57,6 +57,7 @@ logic         	id_illegal_out;
 logic         	id_valid_inst_out;
 logic 			id_uncond_branch;
 logic 			id_cond_branch;
+logic [1:0]		id_shift_controls;
 
 // Outputs from ID/EX Pipeline Register
 logic 			id_rf_reg_wr;
@@ -69,6 +70,7 @@ logic [4:0]     id_rf_decode_addr;
 logic           id_rf_illegal;
 logic 			id_rf_uncond_branch;
 logic 			id_rf_cond_branch;
+logic [1:0]		id_rf_shift_controls;
 
 // Outputs from rf-Stage
 logic [31:0] 	rf_target_PC_out;
@@ -166,6 +168,7 @@ id_stage id_stage_0 (
 .id_immediate_out		(id_immediate_out),
 .id_dest_reg_idx_out	(id_dest_reg_idx_out),
 .id_decode_addr			(id_decode_addr),
+.id_shift_controls		(id_shift_controls),
 .cond_branch			(id_cond_branch),
 .uncond_branch			(id_uncond_branch),
 .id_illegal_out			(id_illegal_out),
@@ -196,6 +199,7 @@ always_ff @(posedge clk or posedge rst) begin
 		id_rf_dest_reg_idx  <=  `ZERO_REG;
 		id_rf_uncond_branch <=  0;
 		id_rf_cond_branch	<=  0;
+		id_rf_shift_controls<=  0;
 		
 		//Debug
 		id_rf_NPC           <=  0;
@@ -216,6 +220,7 @@ always_ff @(posedge clk or posedge rst) begin
 			id_rf_NPC           <=  if_id_NPC;
 			id_rf_uncond_branch <=  id_uncond_branch;
 			id_rf_cond_branch	<=  id_cond_branch;
+			id_rf_shift_controls<=  id_shift_controls;
 		end // if
     end // else: !if(rst)
 end // always
@@ -244,6 +249,7 @@ top #(
     .data2Mem(HWDATA),
     .addr2Mem(rf_addr2Mem),
 	.buffer_carry_out(buffer_carry_out),
+	.id_rf_shift_controls(id_rf_shift_controls),
 	.HTRANS(HTRANS),
 	.HWRITE(HWRITE),
 	.rf_valid_inst(rf_valid_inst),
