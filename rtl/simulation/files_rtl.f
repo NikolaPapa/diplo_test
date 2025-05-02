@@ -8,7 +8,7 @@
 ../processor/reg_cell.sv
 ../processor/reg_row.sv
 ../processor/reg_file.sv
-../processor/top.sv
+../processor/rf_stage.sv
 ../processor/micro_control.sv
 ../processor/rf_processor.sv
 ../processor/if_stage.sv

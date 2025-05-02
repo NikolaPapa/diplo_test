@@ -2,6 +2,9 @@
 	`include "../sys_defs.vh"
 `endif
 
+
+// `timescale 100ns / 1ps
+
 module rf_processor_tb;
 
 ////
@@ -120,8 +123,9 @@ initial begin
 end
 
 initial begin
-    $readmemh("bb_sortH.txt",IM.unified_memory);
-    // $readmemh("test5H.txt",IM.unified_memory);
+    // $readmemh("bb_sort2H.txt",IM.unified_memory);
+    // $readmemh("bit_count.txt",IM.unified_memory);
+    $readmemh("gcd_test.txt",IM.unified_memory);
     // $readmemh("mem_hex.txt",DM.mem);
     $readmemh("init_file.txt",DM.mem);
 end

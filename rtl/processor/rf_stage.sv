@@ -1,4 +1,4 @@
-module top#(
+module rf_stage#(
     parameter COLS = 32,   
     parameter ROWS = 33 
 )(
@@ -54,7 +54,7 @@ micro_control controller(
     .id_rf_valid_inst(id_rf_valid_inst),
     .decode_addr(decode_addr),
     .current_control(current_control),
-    .rf_valid_inst(rf_valid_inst),
+    .rf_valid_inst_out(rf_valid_inst),
     .HTRANS(HTRANS),
     .HWRITE(HWRITE),
     .done(done)

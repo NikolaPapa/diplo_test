@@ -6,12 +6,13 @@ module micro_control(
     output logic         HWRITE,
     output logic [1:0]   HTRANS,
     output logic [19:0] current_control,
-    output logic rf_valid_inst,
+    output logic rf_valid_inst_out,
     output logic done
 );
 
 logic [4:0] current_addr; //uPC like 
 logic [2:0] cnt;
+// logic rf_valid_inst;
 
 
 always_ff @(posedge clk) begin
@@ -29,6 +30,53 @@ always_comb begin
     end
     else current_addr = 18; //wait state
 end
+
+/////////
+// logic exec_active;
+// logic [4:0] uPC_reg;
+
+// always_ff @(posedge clk) begin
+//     if (rst) begin
+//         uPC_reg <= 18;//wait state
+//         exec_active <= 0;
+//     end
+//     else begin
+//         if (id_rf_valid_inst && exec_active != 1) begin
+//             exec_active <= 1;
+//             uPC_reg <= decode_addr;//load first micro operation
+//         end
+//         else if(exec_active)begin
+//             if(done) begin
+//                 uPC_reg <= 18;//wait state
+//                 exec_active <= 0;
+//             end
+//             else begin
+//                 uPC_reg <= uPC_reg + 1;//next micro_inst
+//             end
+//         end 
+//     end  
+// end
+
+// assign rf_valid_inst_out = done & exec_active;
+
+// //issue HTRANS when lw or sw
+// always_comb begin
+//     if (uPC_reg == 0) begin
+//         HTRANS = 2'b10;
+//         HWRITE = 0;
+//     end
+//     else if (uPC_reg == 2) begin
+//         HTRANS = 2'b10;
+//         HWRITE = 1;
+//     end
+//     else begin
+//         HTRANS = 2'b00;
+//         HWRITE = 0;
+//     end
+// end
+
+
+////////
 
 //issue HTRANS when lw or sw
 always_comb begin
@@ -48,13 +96,23 @@ end
 
 
 ROM rom(
-    current_addr,
-    current_control    
+    .addr(current_addr),
+    .out(current_control)    
 );
 
 assign done = current_control[0]; //last bit of the signal
 
-assign rf_valid_inst = id_rf_valid_inst & done; //when the rf stage has control and has completed move control to fetch
+assign rf_valid_inst_out = id_rf_valid_inst & done; 
+//when the rf stage has control and has completed move control to fetch
+
+// always_ff @( posedge clk ) begin
+//     if (rst) begin
+//         rf_valid_inst_out <=0;
+//     end
+//     else begin
+//         rf_valid_inst_out <= rf_valid_inst;
+//     end
+// end
 
 endmodule
 

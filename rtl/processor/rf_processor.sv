@@ -89,6 +89,9 @@ logic buffer_msb;
 logic buffer_carry_out;
 logic buffer_overflow;
 logic buffer_last_carry_in;
+logic exec_active;
+logic id_buff_stall;
+logic next_is_active;
 
 assign rst = ~HRESETn;
 assign clk = HCLK;
@@ -233,7 +236,7 @@ end // always
 //                                              //
 //////////////////////////////////////////////////
 
-top #(
+rf_stage #(
     .COLS(32),
     .ROWS(33) //uses buffer
 )  TopRF (
@@ -292,10 +295,10 @@ always_comb begin
 end
 
 always_comb begin
-	if (id_rf_uncond_branch && done && id_rf_valid_inst) begin
+	if (id_rf_uncond_branch && id_rf_valid_inst && done ) begin
 		rf_take_branch_out = 1;
 	end
-	else if (id_rf_cond_branch && done && id_rf_valid_inst) begin
+	else if (id_rf_cond_branch && id_rf_valid_inst && done) begin
 		rf_take_branch_out = condition_met;
 	end
 	else begin
