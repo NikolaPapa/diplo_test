@@ -14,12 +14,12 @@ sim:/rf_processor_tb/HCLK \
 sim:/rf_processor_tb/HRESETn
 add wave -position insertpoint  \
 sim:/rf_processor_tb/instruction \
-sim:/rf_processor_tb/if_id_IR \
-sim:/rf_processor_tb/id_rf_IR
+sim:/rf_processor_tb/proc_module/if_id_IR \
+sim:/rf_processor_tb/proc_module/id_rf_IR
 add wave -position insertpoint  \
-sim:/rf_processor_tb/if_valid_inst_out \
-sim:/rf_processor_tb/if_id_valid_inst \
-sim:/rf_processor_tb/id_rf_valid_inst
+sim:/rf_processor_tb/proc_module/if_valid_inst_out \
+sim:/rf_processor_tb/proc_module/if_id_valid_inst \
+sim:/rf_processor_tb/proc_module/id_rf_valid_inst
 add wave -position insertpoint  \
 sim:/rf_processor_tb/proc_module/rf_valid_inst
 add wave -position insertpoint  \

@@ -3,6 +3,9 @@ module micro_control(
     input logic rst,
     input logic [4:0] decode_addr,
     input logic id_rf_valid_inst,
+    input logic hready_in,
+    output logic transfer_on,
+    output logic transfer_done,
     output logic         HWRITE,
     output logic [1:0]   HTRANS,
     output logic [19:0] current_control,
@@ -13,14 +16,16 @@ module micro_control(
 logic [4:0] current_addr; //uPC like 
 logic [2:0] cnt;
 // logic rf_valid_inst;
-
+// logic transfer_on;
+// logic transfer_done;
 
 always_ff @(posedge clk) begin
-    if(rst || done)begin
+    if(rst || (done && transfer_done))begin
         cnt <= 0; //reset counter
     end
     else begin
-        cnt <= cnt + 1;
+        if (!transfer_on)
+            cnt <= cnt + 1;
     end
 end
 
@@ -32,67 +37,49 @@ always_comb begin
 end
 
 /////////
-// logic exec_active;
-// logic [4:0] uPC_reg;
-
-// always_ff @(posedge clk) begin
-//     if (rst) begin
-//         uPC_reg <= 18;//wait state
-//         exec_active <= 0;
-//     end
-//     else begin
-//         if (id_rf_valid_inst && exec_active != 1) begin
-//             exec_active <= 1;
-//             uPC_reg <= decode_addr;//load first micro operation
-//         end
-//         else if(exec_active)begin
-//             if(done) begin
-//                 uPC_reg <= 18;//wait state
-//                 exec_active <= 0;
-//             end
-//             else begin
-//                 uPC_reg <= uPC_reg + 1;//next micro_inst
-//             end
-//         end 
-//     end  
-// end
-
-// assign rf_valid_inst_out = done & exec_active;
-
-// //issue HTRANS when lw or sw
-// always_comb begin
-//     if (uPC_reg == 0) begin
-//         HTRANS = 2'b10;
-//         HWRITE = 0;
-//     end
-//     else if (uPC_reg == 2) begin
-//         HTRANS = 2'b10;
-//         HWRITE = 1;
-//     end
-//     else begin
-//         HTRANS = 2'b00;
-//         HWRITE = 0;
-//     end
-// end
 
 
-////////
+
+//////// wait cycles for the bridge
+always_ff @(posedge clk) begin
+    if(rst)begin
+        transfer_on <=0;
+    end
+    else begin
+    if((current_addr == 0)|| (current_addr ==2)) begin
+        transfer_on <= 1;
+    end
+    else if (transfer_on && hready_in) begin
+        transfer_on <= 0;
+    end 
+    end
+end
+
+assign transfer_done = transfer_on ? hready_in : 1'b1;
 
 //issue HTRANS when lw or sw
 always_comb begin
     if (current_addr == 0) begin
         HTRANS = 2'b10;
-        HWRITE = 0;
+        // HWRITE = 0;
     end
     else if (current_addr == 2) begin
         HTRANS = 2'b10;
-        HWRITE = 1;
+        // HWRITE = 1;
     end
     else begin
         HTRANS = 2'b00;
-        HWRITE = 0;
+        // HWRITE = 0;
     end
 end
+
+always_comb begin
+    if((current_addr == 2) || (current_addr == 3))begin
+        HWRITE = 1;
+    end
+    else HWRITE = 0;
+end
+
 
 
 ROM rom(
@@ -102,7 +89,7 @@ ROM rom(
 
 assign done = current_control[0]; //last bit of the signal
 
-assign rf_valid_inst_out = id_rf_valid_inst & done; 
+assign rf_valid_inst_out = id_rf_valid_inst & done & transfer_done; 
 //when the rf stage has control and has completed move control to fetch
 
 // always_ff @( posedge clk ) begin

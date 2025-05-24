@@ -6,6 +6,7 @@ module rf_stage#(
     input logic rst,
     input logic [4:0] decode_addr,
     input logic id_rf_valid_inst,
+    input logic hready_in,
 
     //-- signals for register file --
     input logic [4:0] rd_index,  //save the result
@@ -24,6 +25,7 @@ module rf_stage#(
     output logic [1:0] HTRANS,
     output logic HWRITE,
     output logic done,
+    output logic transfer_done,
     output logic buffer_msb,
     output logic buffer_last_carry_in
 );
@@ -45,7 +47,7 @@ logic carry_in, inv_en;
 
 //-- signals for micro_control --
 logic [19:0] current_control;
-
+logic transfer_on;
 
 
 micro_control controller(
@@ -53,11 +55,14 @@ micro_control controller(
     .rst(rst),
     .id_rf_valid_inst(id_rf_valid_inst),
     .decode_addr(decode_addr),
+    .hready_in(hready_in),
+    .transfer_on(transfer_on),
     .current_control(current_control),
     .rf_valid_inst_out(rf_valid_inst),
     .HTRANS(HTRANS),
     .HWRITE(HWRITE),
-    .done(done)
+    .done(done),
+    .transfer_done(transfer_done)
 );
 
  
@@ -74,6 +79,8 @@ reg_file #(
         .COLS(COLS),
         .ROWS(ROWS)
     ) RF (
+        .hready_in(hready_in),
+        .transfer_on(transfer_on),
         .rd_index(rd_index),
         .write_en(write_en),
         .rs1_index(rs1_index),

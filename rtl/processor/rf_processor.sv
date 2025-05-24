@@ -18,32 +18,30 @@ module rf_processor(
 	output logic [2:0]   HSIZE,
 	output logic         HWRITE,
     output logic [31:0]  HWDATA,   // Write data bus
-    output logic [1:0]   HTRANS,   // Transfer type (IDLE, BUSY, NONSEQ, SEQ)
-
-	
-	// Outputs from IF-Stage 
-	output logic [31:0] if_PC_out,
-	output logic [31:0] if_NPC_out,
-	output logic [31:0] if_IR_out,
-	output logic        if_valid_inst_out,
-
-	// Outputs from IF/ID Pipeline Register
-	output logic [31:0] if_id_PC,
-	output logic [31:0] if_id_NPC,
-	output logic [31:0] if_id_IR,
-	output logic        if_id_valid_inst,
-
-	// Outputs from ID/RF Pipeline Register
-	output logic [31:0] id_rf_PC,
-	output logic [31:0] id_rf_NPC,
-	output logic [31:0] id_rf_IR,
-	output logic   		id_rf_valid_inst
-
+    output logic [1:0]   HTRANS   // Transfer type (IDLE, BUSY, NONSEQ, SEQ)
 
 	);
 
 // Pipeline register enables
 logic 			if_id_enable, id_rf_enable;
+
+// Outputs from IF-Stage 
+logic [31:0] if_PC_out;
+logic [31:0] if_NPC_out;
+logic [31:0] if_IR_out;
+logic if_valid_inst_out;
+
+// Outputs from IF/ID Pipeline Register
+logic [31:0] if_id_PC;
+logic [31:0] if_id_NPC;
+logic [31:0] if_id_IR;
+logic if_id_valid_inst;
+
+// Outputs from ID/RF Pipeline Register
+logic [31:0] id_rf_PC;
+logic [31:0] id_rf_NPC;
+logic [31:0] id_rf_IR;
+logic id_rf_valid_inst;
 
 
 // Outputs from ID stage
@@ -92,6 +90,7 @@ logic buffer_last_carry_in;
 logic exec_active;
 logic id_buff_stall;
 logic next_is_active;
+logic transfer_done;
 
 assign rst = ~HRESETn;
 assign clk = HCLK;
@@ -138,7 +137,7 @@ if_stage if_stage_0 (
 //////////////////////////////////////////////////
 assign if_id_enable = 1;
 
-always_ff @(posedge clk or posedge rst) begin
+always_ff @(posedge clk ) begin //or posedge rst
 	if(rst || push_pal_inst) begin
 		if_id_PC         <=  0;
 		if_id_IR         <=  `NOOP_INST;
@@ -187,7 +186,7 @@ id_stage id_stage_0 (
 //////////////////////////////////////////////////
 assign id_rf_enable =1; // disabled when HzDU initiates a stall
 // synopsys sync_set_rst "rst"
-always_ff @(posedge clk or posedge rst) begin
+always_ff @(posedge clk ) begin //or posedge rst
 	if (rst) begin //sys_rst
 		//Control
 		id_rf_funct3		<=  0;
@@ -209,7 +208,7 @@ always_ff @(posedge clk or posedge rst) begin
 		//Debug
 		id_rf_NPC           <=  0;
     end else begin 
-		if (id_rf_enable && done) begin
+		if (id_rf_enable && done && transfer_done) begin
 			id_rf_funct3		<=  id_funct3_out;
 			id_rf_decode_addr	<=	id_decode_addr;
 			id_rf_illegal       <=  id_illegal_out;
@@ -242,6 +241,7 @@ rf_stage #(
 )  TopRF (
     .clk(clk),
     .rst(rst),
+	.hready_in(HREADY),
     .decode_addr(id_rf_decode_addr),
 	.id_rf_valid_inst(id_rf_valid_inst),
     .rd_index(id_rf_dest_reg_idx),
@@ -260,6 +260,7 @@ rf_stage #(
 	.rf_valid_inst(rf_valid_inst),
 	.rf_pc_plus_imm(rf_pc_plus_imm),
 	.done(done),
+	.transfer_done(transfer_done),
 	.buffer_msb(buffer_msb),
 	.buffer_last_carry_in(buffer_last_carry_in)
 ); 

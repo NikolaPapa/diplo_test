@@ -34,23 +34,23 @@ logic [1:0]   im_command;
 
 
 
-// Outputs from IF-Stage 
-logic [31:0] 	if_PC_out;
-logic [31:0] 	if_NPC_out;
-logic [31:0] 	if_IR_out;
-logic         if_valid_inst_out;
+// // Outputs from IF-Stage 
+// logic [31:0] 	if_PC_out;
+// logic [31:0] 	if_NPC_out;
+// logic [31:0] 	if_IR_out;
+// logic         if_valid_inst_out;
 
-// Outputs from IF/ID Pipeline Register
-logic [31:0] 	if_id_PC;
-logic [31:0] 	if_id_NPC;
-logic [31:0] 	if_id_IR;
-logic         if_id_valid_inst;
+// // Outputs from IF/ID Pipeline Register
+// logic [31:0] 	if_id_PC;
+// logic [31:0] 	if_id_NPC;
+// logic [31:0] 	if_id_IR;
+// logic         if_id_valid_inst;
 
-// Outputs from ID/RF Pipeline Register
-logic [31:0] 	id_rf_PC;
-logic [31:0] 	id_rf_NPC;
-logic [31:0] 	id_rf_IR;
-logic   		  id_rf_valid_inst;
+// // Outputs from ID/RF Pipeline Register
+// logic [31:0] 	id_rf_PC;
+// logic [31:0] 	id_rf_NPC;
+// logic [31:0] 	id_rf_IR;
+// logic   		  id_rf_valid_inst;
 
 
 rf_processor proc_module(
@@ -68,20 +68,20 @@ rf_processor proc_module(
                       .HSIZE(HSIZE),
                       .HWRITE(HWRITE),
                       .HWDATA(HWDATA),   
-                      .HTRANS(HTRANS),  
-
-                      .if_PC_out(if_PC_out),
-                      .if_NPC_out(if_NPC_out),
-                      .if_IR_out(if_IR_out),
-                      .if_valid_inst_out(if_valid_inst_out),
-                      .if_id_PC(if_id_PC),
-                      .if_id_NPC(if_id_NPC),
-                      .if_id_IR(if_id_IR),
-                      .if_id_valid_inst(if_id_valid_inst),
-                      .id_rf_PC(id_rf_PC),
-                      .id_rf_NPC(id_rf_NPC),
-                      .id_rf_IR(id_rf_IR),
-                      .id_rf_valid_inst(id_rf_valid_inst));
+                      .HTRANS(HTRANS)  
+);
+                      // .if_PC_out(if_PC_out),
+                      // .if_NPC_out(if_NPC_out),
+                      // .if_IR_out(if_IR_out),
+                      // .if_valid_inst_out(if_valid_inst_out),
+                      // .if_id_PC(if_id_PC),
+                      // .if_id_NPC(if_id_NPC),
+                      // .if_id_IR(if_id_IR),
+                      // .if_id_valid_inst(if_id_valid_inst),
+                      // .id_rf_PC(id_rf_PC),
+                      // .id_rf_NPC(id_rf_NPC),
+                      // .id_rf_IR(id_rf_IR),
+                      // .id_rf_valid_inst(id_rf_valid_inst));
 
 logic [3:0] mem2proc_response_im;
 logic [3:0] mem2proc_tag_im;
@@ -100,10 +100,11 @@ mem IM(
 
 
   
-  assign HREADY = 1;//no other subordinates
+  // assign HREADY = 1;//no other subordinates
+  assign HREADY = HREADYOUT;
 
   // Instantiate the DataMemory
-  ahb_memory DM (
+  mem_late8 DM (
     .HCLK(HCLK),
     .HRESETn(HRESETn),
     .HADDR(HADDR),
@@ -123,11 +124,15 @@ initial begin
 end
 
 initial begin
-    // $readmemh("bb_sort2H.txt",IM.unified_memory);
+    $readmemh("bb_sort2H.txt",IM.unified_memory);
     // $readmemh("bit_count.txt",IM.unified_memory);
-    $readmemh("gcd_test.txt",IM.unified_memory);
+    // $readmemh("gcd_test.txt",IM.unified_memory);
+    // $readmemh("mul_test.txt",IM.unified_memory);
+    // $readmemh("scalar_demo2.txt",IM.unified_memory);
+
+
     // $readmemh("mem_hex.txt",DM.mem);
-    $readmemh("init_file.txt",DM.mem);
+    // $readmemh("init_file.txt",DM.mem);
 end
 
 initial begin

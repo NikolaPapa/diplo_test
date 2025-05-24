@@ -1,0 +1,59 @@
+m255
+K4
+z2
+!s11f MIXED_VERSIONS
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 d//wsl.localhost/Ubuntu/home/nikopapa88ece/diplo_version1/rtl/processor/fpga_fix
+vmem_late8
+Z1 DXx6 sv_std 3 std 0 22 VYECXdT12H8WgbUP_5Y6:3
+Z2 !s110 1747908859
+!i10b 1
+!s100 T[ZWaHa]_OoB@h];mGT[;1
+Z3 !s11b Dg1SIo80bB@j0V0VzS_@n1
+I_:Bd5X0hf@cHjn1bb6n0m0
+Z4 VDg1SIo80bB@j0V0VzS_@n1
+S1
+R0
+w1747908789
+8mem_late8.sv
+Fmem_late8.sv
+!i122 5
+L0 1 78
+Z5 OV;L;2020.1;71
+r1
+!s85 0
+31
+Z6 !s108 1747908858.000000
+!s107 tb_mem_late8.sv|mem_late8.sv|
+Z7 !s90 -reportprogress|300|mem_late8.sv|tb_mem_late8.sv|
+!i113 1
+Z8 tCvgOpt 0
+vtb_mem_late8
+R1
+R2
+!i10b 1
+!s100 4G:hG8MH8@?YXIRa7ZZ7U2
+R3
+IU9KVWPEQVS05aczAeSdi<0
+R4
+S1
+R0
+w1747900834
+8tb_mem_late8.sv
+Ftb_mem_late8.sv
+!i122 5
+L0 1 183
+R5
+r1
+!s85 0
+31
+R6
+Z9 !s107 tb_mem_late8.sv|mem_late8.sv|
+R7
+!i113 1
+R8

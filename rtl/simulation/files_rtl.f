@@ -17,3 +17,4 @@
 rf_processor_tb.sv
 memory.sv
 ahb_memory.sv
+mem_late8.sv

@@ -68,16 +68,18 @@ always_comb begin
 					shift_controls = 2'b00;
 					swap_regs = 1;
 				end
-				`SRLI_INST  : begin
+				`SRLI_INST, `SRAI_INST : begin
 					decode_addr = 27;
-					shift_controls = 2'b10;
 					swap_regs = 1;
+
+					// shift_controls = 2'b10;//srl
+					// shift_controls = 2'b11;//sra
+					shift_controls = |inst[31:25] ? 2'b11 : 2'b10;
 				end
-				`SRAI_INST  : begin
-					decode_addr = 27;
-					shift_controls = 2'b11;
-					swap_regs = 1;
-				end
+				// `SRAI_INST  : begin
+				// 	decode_addr = 27;
+				// 	swap_regs = 1;
+				// end
 				
 				default: illegal = `TRUE;
 			endcase 

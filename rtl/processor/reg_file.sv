@@ -2,6 +2,8 @@ module reg_file#(
     parameter COLS = 32,   // Number of columns (bits per row)
     parameter ROWS = 33    // Number of rows in the array
 )(
+    input logic transfer_on, //do not write when low
+    input logic hready_in,
     input logic [4:0] rd_index,  //save the result
     input logic write_en, //when needs to store a register
     input logic [4:0] rs1_index, //computes the op
@@ -144,9 +146,19 @@ ctrl_32_out ctrl_plus_imm(
     endgenerate
 
 //index handling
+logic write_en_decode;
+always_comb begin
+    if(transfer_on && write_en) begin
+        write_en_decode = hready_in;
+    end
+    else begin
+        write_en_decode = write_en;
+    end
+end
+
 decode_ctrl ctrl_write(
         .index(rd_index),
-        .ctrl(write_en),
+        .ctrl(write_en_decode),
         .out(write_addr_32)
     );
 
